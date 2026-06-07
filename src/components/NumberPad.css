@@ -1,0 +1,62 @@
+.number-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+  max-width: 320px;
+  margin: 1rem auto 0;
+}
+
+.pad-key {
+  /* Override the global pill button styling for a calculator-style key. */
+  border-radius: 0.85rem;
+  padding: 0;
+  height: clamp(3.25rem, 13vw, 4rem);
+  font-size: clamp(1.4rem, 6vw, 1.9rem);
+  font-weight: 700;
+  background: #f3f0ff;
+  color: var(--text);
+  box-shadow: 0 2px 0 rgba(124, 58, 237, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Stop long-presses from selecting digits or popping up context menus. */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.pad-key:hover {
+  background: #e9e3ff;
+}
+
+.pad-key:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 rgba(124, 58, 237, 0.18);
+}
+
+.pad-key--action {
+  background: #ede9fe;
+  color: var(--primary-dark);
+}
+
+.pad-key--enter {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 2px 0 var(--primary-dark);
+}
+
+.pad-key--enter:hover {
+  background: var(--primary-dark);
+}
+
+.pad-key:disabled {
+  opacity: 0.5;
+  background: #f3f0ff;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.pad-key--enter:disabled {
+  background: #c4b5fd;
+}

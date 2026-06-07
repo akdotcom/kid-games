@@ -70,36 +70,27 @@
   margin: 0.5rem 0 1.25rem;
 }
 
-.answer-form {
+.answer-display {
+  font-size: 2.25rem;
+  font-weight: 800;
+  min-width: 7rem;
+  max-width: 12rem;
+  margin: 0 auto;
+  text-align: center;
+  padding: 0.4rem 0.75rem;
+  border: 3px solid var(--primary);
+  border-radius: 0.75rem;
+  color: var(--text);
+  background: #fff;
+  /* Keep the box height steady whether or not a digit has been entered. */
+  min-height: 3.5rem;
   display: flex;
-  gap: 0.5rem;
+  align-items: center;
   justify-content: center;
 }
 
-.answer-input {
-  font-size: 2rem;
-  font-weight: 700;
-  width: 7rem;
-  text-align: center;
-  padding: 0.4rem 0.5rem;
-  border: 3px solid var(--primary);
-  border-radius: 0.75rem;
-  outline: none;
-}
-
-.answer-input:focus {
-  border-color: var(--accent);
-}
-
-/* Hide number spinner arrows for a cleaner look. */
-.answer-input::-webkit-outer-spin-button,
-.answer-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-.answer-input {
-  -moz-appearance: textfield;
-  appearance: textfield;
+.answer-display.is-empty {
+  color: #c4b5fd;
 }
 
 .feedback {

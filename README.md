@@ -4,6 +4,24 @@ A small static website of browser games for kids, built with **TypeScript + Reac
 
 **Live site:** https://akdotcom.github.io/kid-games/
 
+## Progressive Web App
+
+The site is an installable PWA: from the browser's "Add to Home Screen" /
+"Install" prompt it runs full-screen (no browser chrome) and works offline after
+the first visit, thanks to a service worker (`public/sw.js`) and web app manifest
+(`public/manifest.webmanifest`).
+
+Games use an on-screen number pad rather than the device's software keyboard, so
+the keyboard never slides up and covers the screen on phones, and the layout
+stays fully under our control.
+
+The app icons (`public/icon-*.png`, `public/apple-touch-icon.png`) are generated
+from a tiny dependency-free script:
+
+```bash
+node scripts/generate-icons.mjs
+```
+
 ## Games
 
 | Game | Description |
@@ -52,9 +70,18 @@ route at `/games/your-game`.
 ```
 src/
   main.tsx              app entry (HashRouter for GitHub Pages)
+  registerSW.ts         registers the service worker in production
   App.tsx               routes, generated from the game registry
+  components/
+    NumberPad.tsx       reusable on-screen numeric keypad
   pages/Home.tsx        home page listing all games
   games/
     registry.tsx        the list of games
     addition/           the addition game
+public/
+  manifest.webmanifest  PWA manifest
+  sw.js                 service worker (offline + installability)
+  icon-*.png            PWA / home-screen icons
+scripts/
+  generate-icons.mjs    regenerates the PNG icons
 ```

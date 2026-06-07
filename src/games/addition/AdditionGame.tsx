@@ -1,8 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import NumberPad from '../../components/NumberPad'
 import './AdditionGame.css'
 
 const TIME_LIMIT = 10 // seconds allowed per problem
 const TARGET = 10 // correct answers needed to win
+const MAX_ANSWER_LEN = 2 // the largest possible sum (9 + 9) is two digits
 
 type Status = 'ready' | 'playing' | 'won' | 'lost'
 
@@ -28,8 +30,6 @@ export default function AdditionGame() {
   const [timeLeft, setTimeLeft] = useState(TIME_LIMIT)
   const [feedback, setFeedback] = useState<'none' | 'wrong'>('none')
 
-  const inputRef = useRef<HTMLInputElement>(null)
-
   const startGame = useCallback(() => {
     setSolved(0)
     setProblem(newProblem())
@@ -51,18 +51,19 @@ export default function AdditionGame() {
     return () => clearTimeout(id)
   }, [status, timeLeft])
 
-  // Keep focus on the input while playing.
-  useEffect(() => {
-    if (status === 'playing') inputRef.current?.focus()
-  }, [status, problem])
+  const appendDigit = useCallback((digit: string) => {
+    setAnswer((prev) => (prev.length >= MAX_ANSWER_LEN ? prev : prev + digit))
+  }, [])
 
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const backspace = useCallback(() => {
+    setAnswer((prev) => prev.slice(0, -1))
+  }, [])
+
+  const submitAnswer = useCallback(() => {
     if (status !== 'playing') return
+    if (answer.trim() === '') return
 
     const value = Number(answer)
-    if (answer.trim() === '' || Number.isNaN(value)) return
-
     if (value === problem.a + problem.b) {
       const nowSolved = solved + 1
       setSolved(nowSolved)
@@ -79,7 +80,24 @@ export default function AdditionGame() {
       setFeedback('wrong')
       setAnswer('')
     }
-  }
+  }, [status, answer, problem, solved])
+
+  // Support physical keyboards (desktop) in addition to the on-screen pad.
+  useEffect(() => {
+    if (status !== 'playing') return
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key >= '0' && e.key <= '9') {
+        appendDigit(e.key)
+      } else if (e.key === 'Backspace') {
+        backspace()
+      } else if (e.key === 'Enter') {
+        e.preventDefault()
+        submitAnswer()
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [status, appendDigit, backspace, submitAnswer])
 
   return (
     <div className="addition-game">
@@ -117,19 +135,22 @@ export default function AdditionGame() {
             {problem.a} + {problem.b} =
           </div>
 
-          <form onSubmit={submit} className="answer-form">
-            <input
-              ref={inputRef}
-              type="number"
-              inputMode="numeric"
-              className="answer-input"
-              value={answer}
-              onChange={(e) => setAnswer(e.target.value)}
-              aria-label="Your answer"
-              autoFocus
-            />
-            <button type="submit">Go</button>
-          </form>
+          {/* Read-only display instead of a native input so the device keyboard
+              never opens and covers the problem. Entry is via the pad below. */}
+          <div
+            className={`answer-display ${answer ? '' : 'is-empty'}`}
+            role="textbox"
+            aria-label="Your answer"
+            aria-readonly="true"
+          >
+            {answer || '?'}
+          </div>
+
+          <NumberPad
+            onDigit={appendDigit}
+            onBackspace={backspace}
+            onEnter={submitAnswer}
+          />
 
           {feedback === 'wrong' && (
             <p className="feedback wrong">Not quite — try again!</p>
