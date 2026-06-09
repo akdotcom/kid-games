@@ -1,0 +1,144 @@
+.memory-game {
+  text-align: center;
+}
+
+.memory-game h1 {
+  color: var(--primary-dark);
+  font-size: clamp(1.75rem, 5vw, 2.5rem);
+}
+
+.memory-game .hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  font-size: 1.15rem;
+  max-width: 460px;
+  margin: 0.5rem auto 1.25rem;
+}
+
+.memory-game .score {
+  color: var(--good);
+}
+
+.memory-game .moves {
+  color: var(--muted);
+}
+
+/* ---- Board ---- */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  max-width: 460px;
+  margin: 0 auto;
+}
+
+@media (max-width: 380px) {
+  .card-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Each card is a flippable square. The button resets default styling so the
+   3D flip and faces show through. */
+.card {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  padding: 0;
+  border: none;
+  border-radius: 0.9rem;
+  background: transparent;
+  perspective: 700px;
+  cursor: pointer;
+}
+
+.card:disabled {
+  cursor: default;
+}
+
+.card-inner {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transition: transform 0.4s ease;
+}
+
+.card.face-up .card-inner {
+  transform: rotateY(180deg);
+}
+
+.card-back,
+.card-front {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.9rem;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  font-weight: 800;
+}
+
+.card-back {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #fff;
+  font-size: clamp(1.5rem, 7vw, 2.25rem);
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.25);
+}
+
+.card:not(:disabled):hover .card-back {
+  filter: brightness(1.08);
+}
+
+.card-front {
+  background: var(--card);
+  color: var(--text);
+  font-size: clamp(1.1rem, 5vw, 1.6rem);
+  transform: rotateY(180deg);
+  border: 3px solid var(--primary);
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.15);
+  padding: 0.25rem;
+}
+
+.card.matched .card-front {
+  border-color: var(--good);
+  background: #ecfdf5;
+  color: var(--good);
+  animation: pop 0.3s ease;
+}
+
+@keyframes pop {
+  0% {
+    transform: rotateY(180deg) scale(1);
+  }
+  50% {
+    transform: rotateY(180deg) scale(1.12);
+  }
+  100% {
+    transform: rotateY(180deg) scale(1);
+  }
+}
+
+/* ---- Shared panel styles (start / win screens) ---- */
+.panel {
+  background: var(--card);
+  border-radius: 1.25rem;
+  padding: 1.75rem 1.5rem;
+  box-shadow: 0 10px 30px rgba(124, 58, 237, 0.15);
+  max-width: 460px;
+  margin: 1rem auto 0;
+}
+
+.rules {
+  font-size: 1.1rem;
+  line-height: 1.5;
+  margin-top: 0;
+}
+
+.result .big {
+  font-size: 2rem;
+  font-weight: 800;
+  margin: 0 0 0.5rem;
+}
