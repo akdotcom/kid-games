@@ -3,6 +3,7 @@ import './MemoryMatchGame.css'
 
 const PAIRS = 6 // number of equation/answer pairs (PAIRS * 2 cards on the board)
 const FLIP_BACK_DELAY = 1000 // ms a mismatched pair stays visible before flipping back
+const WIN_DELAY = 1000 // ms to let the player see the final pair before celebrating
 
 type Status = 'ready' | 'playing' | 'won'
 
@@ -17,10 +18,178 @@ interface Card {
   matched: boolean
 }
 
-function randomDigit() {
-  // Single digit 0-9.
-  return Math.floor(Math.random() * 10)
+interface Level {
+  name: string
+  build: () => Array<{ equation: string; answer: string }>
 }
+
+// Distinct color per matched pair, indexed by pairId. Chosen for accessibility
+// on the light card background.
+const PAIR_COLORS = [
+  '#16a34a', // green
+  '#2563eb', // blue
+  '#db2777', // pink
+  '#ea580c', // orange
+  '#7c3aed', // purple
+  '#0891b2', // cyan
+]
+const PAIR_BG_COLORS = [
+  '#dcfce7',
+  '#dbeafe',
+  '#fce7f3',
+  '#ffedd5',
+  '#ede9fe',
+  '#cffafe',
+]
+
+function randInt(min: number, max: number) {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+function gcd(a: number, b: number): number {
+  return b === 0 ? a : gcd(b, a % b)
+}
+
+function simplify(n: number, d: number): [number, number] {
+  const g = gcd(Math.abs(n), Math.abs(d)) || 1
+  return [n / g, d / g]
+}
+
+/**
+ * Repeatedly call `generate` until we have `count` pairs whose equations AND
+ * answers are all distinct — that way every face-up card maps to exactly one
+ * partner on the board.
+ */
+function buildUnique(
+  generate: () => { equation: string; answer: string },
+  count: number,
+): Array<{ equation: string; answer: string }> {
+  const seenAnswers = new Set<string>()
+  const seenEquations = new Set<string>()
+  const out: Array<{ equation: string; answer: string }> = []
+  for (let attempts = 0; out.length < count && attempts < 2000; attempts++) {
+    const pair = generate()
+    if (seenAnswers.has(pair.answer) || seenEquations.has(pair.equation)) continue
+    seenAnswers.add(pair.answer)
+    seenEquations.add(pair.equation)
+    out.push(pair)
+  }
+  return out
+}
+
+// Levels are ordered from easiest to hardest. Each builder returns PAIRS
+// unique equation/answer pairs appropriate for that level.
+const LEVELS: Level[] = [
+  {
+    name: 'Easy Addition',
+    build: () =>
+      buildUnique(() => {
+        const a = randInt(0, 9)
+        const b = randInt(0, 9)
+        return { equation: `${a} + ${b}`, answer: `${a + b}` }
+      }, PAIRS),
+  },
+  {
+    name: 'Bigger Addition',
+    build: () =>
+      buildUnique(() => {
+        const a = randInt(10, 50)
+        const b = randInt(10, 50)
+        return { equation: `${a} + ${b}`, answer: `${a + b}` }
+      }, PAIRS),
+  },
+  {
+    name: 'Subtraction',
+    build: () =>
+      buildUnique(() => {
+        const a = randInt(10, 30)
+        const b = randInt(1, a)
+        return { equation: `${a} − ${b}`, answer: `${a - b}` }
+      }, PAIRS),
+  },
+  {
+    name: 'Mixed Add & Subtract',
+    build: () =>
+      buildUnique(() => {
+        if (Math.random() < 0.5) {
+          const a = randInt(20, 80)
+          const b = randInt(10, 50)
+          return { equation: `${a} + ${b}`, answer: `${a + b}` }
+        }
+        const a = randInt(30, 99)
+        const b = randInt(1, a)
+        return { equation: `${a} − ${b}`, answer: `${a - b}` }
+      }, PAIRS),
+  },
+  {
+    name: 'Easy Multiplication',
+    build: () =>
+      buildUnique(() => {
+        const a = randInt(2, 5)
+        const b = randInt(2, 9)
+        return { equation: `${a} × ${b}`, answer: `${a * b}` }
+      }, PAIRS),
+  },
+  {
+    name: 'Times Tables',
+    build: () =>
+      buildUnique(() => {
+        const a = randInt(3, 12)
+        const b = randInt(3, 12)
+        return { equation: `${a} × ${b}`, answer: `${a * b}` }
+      }, PAIRS),
+  },
+  {
+    name: 'Division',
+    build: () =>
+      buildUnique(() => {
+        const b = randInt(2, 10)
+        const q = randInt(2, 10)
+        const a = b * q
+        return { equation: `${a} ÷ ${b}`, answer: `${q}` }
+      }, PAIRS),
+  },
+  {
+    name: 'Equivalent Fractions',
+    build: () =>
+      buildUnique(() => {
+        const d = randInt(2, 6)
+        const n = randInt(1, d - 1)
+        const m = randInt(2, 4)
+        const [sn, sd] = simplify(n, d)
+        return { equation: `${n * m}/${d * m}`, answer: `${sn}/${sd}` }
+      }, PAIRS),
+  },
+  {
+    name: 'Fraction Addition',
+    build: () =>
+      buildUnique(() => {
+        const d = randInt(3, 8)
+        const a = randInt(1, d - 2)
+        const b = randInt(1, d - a)
+        const [sn, sd] = simplify(a + b, d)
+        return {
+          equation: `${a}/${d} + ${b}/${d}`,
+          answer: sd === 1 ? `${sn}` : `${sn}/${sd}`,
+        }
+      }, PAIRS),
+  },
+  {
+    name: 'Fraction Multiplication',
+    build: () =>
+      buildUnique(() => {
+        const a = randInt(1, 3)
+        const b = randInt(2, 5)
+        const c = randInt(1, 3)
+        const d = randInt(2, 5)
+        const [sn, sd] = simplify(a * c, b * d)
+        return {
+          equation: `${a}/${b} × ${c}/${d}`,
+          answer: sd === 1 ? `${sn}` : `${sn}/${sd}`,
+        }
+      }, PAIRS),
+  },
+]
 
 // Fisher–Yates shuffle (returns a new array).
 function shuffle<T>(items: T[]): T[] {
@@ -32,55 +201,42 @@ function shuffle<T>(items: T[]): T[] {
   return out
 }
 
-/**
- * Build a shuffled deck of PAIRS equation cards and their matching answer
- * cards. Sums are kept unique across pairs so every equation has exactly one
- * answer card it can match — no ambiguity for the player.
- */
-function newDeck(): Card[] {
-  const usedSums = new Set<number>()
+function newDeck(levelIndex: number): Card[] {
+  const config = LEVELS[Math.min(levelIndex, LEVELS.length - 1)]
+  const pairs = config.build()
   const cards: Card[] = []
   let nextId = 0
-
-  for (let pairId = 0; pairId < PAIRS; pairId++) {
-    let a = randomDigit()
-    let b = randomDigit()
-    // Re-roll until we get a sum we haven't used yet, so answers are unique.
-    while (usedSums.has(a + b)) {
-      a = randomDigit()
-      b = randomDigit()
-    }
-    usedSums.add(a + b)
-
+  pairs.forEach((p, pairId) => {
     cards.push({
       id: nextId++,
       pairId,
       type: 'equation',
-      label: `${a} + ${b}`,
+      label: p.equation,
       matched: false,
     })
     cards.push({
       id: nextId++,
       pairId,
       type: 'answer',
-      label: `${a + b}`,
+      label: p.answer,
       matched: false,
     })
-  }
-
+  })
   return shuffle(cards)
 }
 
 export default function MemoryMatchGame() {
   const [status, setStatus] = useState<Status>('ready')
-  const [cards, setCards] = useState<Card[]>(newDeck)
+  const [level, setLevel] = useState(0)
+  const [cards, setCards] = useState<Card[]>(() => newDeck(0))
   // Ids of the (at most two) face-up cards that aren't yet matched.
   const [flipped, setFlipped] = useState<number[]>([])
   const [score, setScore] = useState(0)
   const [moves, setMoves] = useState(0)
 
-  const startGame = useCallback(() => {
-    setCards(newDeck())
+  const startGame = useCallback((startLevel: number) => {
+    setLevel(startLevel)
+    setCards(newDeck(startLevel))
     setFlipped([])
     setScore(0)
     setMoves(0)
@@ -114,10 +270,12 @@ export default function MemoryMatchGame() {
     }
   }, [flipped, cards])
 
-  // Win when every pair has been matched.
+  // Win when every pair has been matched — but hold on the final pair for a
+  // beat so the player sees it land before the celebration screen takes over.
   useEffect(() => {
     if (status === 'playing' && score === PAIRS) {
-      setStatus('won')
+      const timer = setTimeout(() => setStatus('won'), WIN_DELAY)
+      return () => clearTimeout(timer)
     }
   }, [status, score])
 
@@ -130,6 +288,9 @@ export default function MemoryMatchGame() {
     setFlipped((prev) => [...prev, card.id])
   }
 
+  const hasNextLevel = level < LEVELS.length - 1
+  const currentLevelName = LEVELS[level].name
+
   return (
     <div className="memory-game">
       <h1>🧠 Memory Math Match</h1>
@@ -138,30 +299,41 @@ export default function MemoryMatchGame() {
         <div className="panel">
           <p className="rules">
             Flip cards two at a time to match each{' '}
-            <strong>addition problem</strong> with its <strong>answer</strong>.
+            <strong>math problem</strong> with its <strong>answer</strong>.
             Remember where the cards are! Match all <strong>{PAIRS}</strong>{' '}
-            pairs to win.
+            pairs to win. Clear a level to unlock the next, harder one.
           </p>
-          <button onClick={startGame}>Start</button>
+          <button onClick={() => startGame(0)}>Start</button>
         </div>
       )}
 
       {status === 'playing' && (
         <>
           <div className="hud">
-            <span className="score">⭐ Score: {score}</span>
+            <span className="level">Level {level + 1}</span>
+            <span className="score">⭐ {score}</span>
             <span className="moves">Tries: {moves}</span>
           </div>
+          <p className="level-name">{currentLevelName}</p>
 
           <div className="card-grid">
             {cards.map((card) => {
               const isFaceUp = card.matched || flipped.includes(card.id)
+              const pairStyle = card.matched
+                ? ({
+                    '--pair-color':
+                      PAIR_COLORS[card.pairId % PAIR_COLORS.length],
+                    '--pair-bg':
+                      PAIR_BG_COLORS[card.pairId % PAIR_BG_COLORS.length],
+                  } as React.CSSProperties)
+                : undefined
               return (
                 <button
                   key={card.id}
                   className={`card ${isFaceUp ? 'face-up' : ''} ${
                     card.matched ? 'matched' : ''
                   }`}
+                  style={pairStyle}
                   onClick={() => handleCardClick(card)}
                   disabled={isFaceUp}
                   aria-label={isFaceUp ? card.label : 'Hidden card'}
@@ -181,9 +353,33 @@ export default function MemoryMatchGame() {
         <div className="panel result">
           <p className="big">🎉 You matched them all!</p>
           <p>
-            You cleared all {PAIRS} pairs in {moves} tries. Great memory!
+            You cleared <strong>Level {level + 1}: {currentLevelName}</strong>{' '}
+            in {moves} tries.
           </p>
-          <button onClick={startGame}>Play again</button>
+          {hasNextLevel ? (
+            <p className="next-hint">
+              Ready for <strong>Level {level + 2}: {LEVELS[level + 1].name}</strong>?
+            </p>
+          ) : (
+            <p className="next-hint">
+              🏆 You finished every level! Replay any time to keep your skills sharp.
+            </p>
+          )}
+          <div className="actions">
+            {hasNextLevel && (
+              <button onClick={() => startGame(level + 1)}>
+                Next Level →
+              </button>
+            )}
+            <button className="secondary" onClick={() => startGame(level)}>
+              Play this level again
+            </button>
+            {level > 0 && (
+              <button className="secondary" onClick={() => startGame(0)}>
+                Back to Level 1
+              </button>
+            )}
+          </div>
         </div>
       )}
     </div>
