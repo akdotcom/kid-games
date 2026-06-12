@@ -17,12 +17,23 @@
   margin: 0.5rem auto 1.25rem;
 }
 
+.memory-game .level {
+  color: var(--primary-dark);
+}
+
 .memory-game .score {
   color: var(--good);
 }
 
 .memory-game .moves {
   color: var(--muted);
+}
+
+.memory-game .level-name {
+  text-align: center;
+  margin: -0.5rem 0 1rem;
+  color: var(--muted);
+  font-weight: 600;
 }
 
 /* ---- Board ---- */
@@ -103,9 +114,9 @@
 }
 
 .card.matched .card-front {
-  border-color: var(--good);
-  background: #ecfdf5;
-  color: var(--good);
+  border-color: var(--pair-color, var(--good));
+  background: var(--pair-bg, #ecfdf5);
+  color: var(--pair-color, var(--good));
   animation: pop 0.3s ease;
 }
 
@@ -141,4 +152,29 @@
   font-size: 2rem;
   font-weight: 800;
   margin: 0 0 0.5rem;
+}
+
+.result .next-hint {
+  color: var(--primary-dark);
+  font-size: 1.05rem;
+  margin: 0.75rem 0 1rem;
+}
+
+.result .actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.result .actions button.secondary {
+  background: transparent;
+  color: var(--primary-dark);
+  border: 2px solid var(--primary);
+}
+
+.result .actions button.secondary:hover {
+  background: var(--primary);
+  color: #fff;
 }
