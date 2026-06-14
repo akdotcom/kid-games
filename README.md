@@ -10,6 +10,7 @@ A small static website of browser games for kids, built with **TypeScript + Reac
 | --- | --- |
 | ➕ Beat the Clock: Addition | Solve 10 single-digit addition problems, with 10 seconds for each one. |
 | 🧠 Memory Math Match | Flip cards two at a time to match addition problems with their answers. |
+| ❌ Math Tic-Tac-Toe | Two players take turns; solve a square's addition problem to claim it and get three in a row. |
 
 ## Local development
 
