@@ -1,0 +1,233 @@
+.ttt-game {
+  text-align: center;
+}
+
+.ttt-game h1 {
+  color: var(--primary-dark);
+  font-size: clamp(1.75rem, 5vw, 2.5rem);
+  margin-bottom: 0.5rem;
+}
+
+/* Player colors: X is purple, O is amber. */
+:root {
+  --x-color: #7c3aed;
+  --o-color: #ea580c;
+}
+
+/* ---- Turn banner: always makes the active player obvious ---- */
+.turn-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  max-width: 420px;
+  margin: 0.5rem auto;
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+}
+
+.turn-banner.player-X {
+  background: var(--x-color);
+}
+
+.turn-banner.player-O {
+  background: var(--o-color);
+}
+
+.turn-banner.player-draw {
+  background: var(--muted);
+}
+
+.turn-banner:not(.result) {
+  animation: bob 1.1s ease-in-out infinite alternate;
+}
+
+@keyframes bob {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-4px);
+  }
+}
+
+.turn-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  font-size: 1.2rem;
+}
+
+.hint {
+  color: var(--muted);
+  max-width: 420px;
+  margin: 0.5rem auto 1rem;
+  font-size: 0.95rem;
+}
+
+/* ---- Board ---- */
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+  max-width: 360px;
+  margin: 0 auto;
+}
+
+.board.choosing .cell.open:not(.selected) {
+  opacity: 0.5;
+}
+
+.cell {
+  aspect-ratio: 1 / 1;
+  border-radius: 1rem;
+  background: var(--card);
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.15s ease;
+}
+
+.cell.open .equation {
+  font-size: clamp(1.1rem, 4.5vw, 1.6rem);
+  font-weight: 800;
+  color: var(--text);
+}
+
+.cell.open:hover:not(:disabled) {
+  transform: translateY(-3px);
+  background: #faf5ff;
+}
+
+.cell.selected {
+  outline: 4px solid var(--accent);
+  outline-offset: 2px;
+  opacity: 1 !important;
+}
+
+.cell.taken {
+  cursor: default;
+}
+
+.cell .piece {
+  font-size: clamp(2.5rem, 12vw, 4rem);
+  font-weight: 900;
+  line-height: 1;
+}
+
+.cell.player-X .piece {
+  color: var(--x-color);
+}
+
+.cell.player-O .piece {
+  color: var(--o-color);
+}
+
+.cell.winning {
+  animation: win-pop 0.5s ease infinite alternate;
+  box-shadow: 0 0 0 4px var(--good), 0 6px 16px rgba(22, 163, 74, 0.4);
+}
+
+@keyframes win-pop {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.06);
+  }
+}
+
+/* ---- Answer card ---- */
+.answer-card {
+  background: var(--card);
+  border-radius: 1.25rem;
+  padding: 1.25rem 1.25rem 1.5rem;
+  box-shadow: 0 10px 30px rgba(124, 58, 237, 0.15);
+  max-width: 420px;
+  margin: 1.25rem auto 0;
+  border-top: 6px solid var(--muted);
+}
+
+.answer-card.player-X {
+  border-top-color: var(--x-color);
+}
+
+.answer-card.player-O {
+  border-top-color: var(--o-color);
+}
+
+.ask {
+  font-size: 1.25rem;
+  margin: 0 0 1rem;
+}
+
+.answer-row {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.answer-input {
+  font-size: 1.75rem;
+  font-weight: 700;
+  width: 6rem;
+  text-align: center;
+  padding: 0.35rem 0.5rem;
+  border: 3px solid var(--primary);
+  border-radius: 0.75rem;
+  outline: none;
+}
+
+.answer-input:focus {
+  border-color: var(--accent);
+}
+
+.answer-input::-webkit-outer-spin-button,
+.answer-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.answer-input {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+button.ghost {
+  background: transparent;
+  color: var(--muted);
+  border: 2px solid #e5e7eb;
+}
+
+button.ghost:hover {
+  background: #f3f4f6;
+  color: var(--text);
+}
+
+.feedback {
+  font-weight: 700;
+  margin: 0.9rem 0 0;
+}
+
+.feedback.wrong {
+  color: var(--bad);
+}
+
+.reset {
+  margin-top: 1.5rem;
+  background: var(--accent);
+}
+
+.reset:hover {
+  background: #d97706;
+}
